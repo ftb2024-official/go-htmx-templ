@@ -1,0 +1,27 @@
+{{block "index" .}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://unpkg.com/htmx.org@1.9.12"
+		integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+		crossorigin="anonymous"></script>
+	<title>My Gin Server</title>
+</head>
+
+<body>
+	<div>
+		Count <span id="count">{{template "count" .}}</span>
+		<!-- точка означает след. "передай мне всё то (данные/объект), что ты получил" -->
+	</div>
+	<button hx-target="#count" hx-post="/count" style="margin-top: 25px;">Count</button>
+</body>
+
+</html>
+{{end}}
+
+{{block "count" .}}
+{{.Count}}
+{{end}}
