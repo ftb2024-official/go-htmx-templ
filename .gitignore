@@ -16,3 +16,6 @@
 
 # Go workspace file
 go.work
+
+# Ignore binary and object directories
+/tmp/
