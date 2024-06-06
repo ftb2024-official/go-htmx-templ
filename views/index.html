@@ -6,22 +6,59 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="https://unpkg.com/htmx.org@1.9.12"
-		integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
-		crossorigin="anonymous"></script>
+		integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous">
+		</script>
+	<script>
+		document.addEventListener("DOMContentLoaded", (event) => {
+			document.body.addEventListener("htmx:beforeSwap", function (evt) {
+				if (evt.detail.xhr.status === 422) {
+					evt.detail.shouldSwap = true
+					evt.detail.isError = false
+				}
+			})
+		})
+	</script>
 	<title>My Gin Server!</title>
 </head>
 
 <body>
-	<div>
-		Count <span id="count">{{template "count" .}}</span>
-		<!-- точка означает след. "передай мне всё то (данные/объект), что ты получил" -->
-	</div>
-	<button hx-target="#count" hx-post="/count" style="margin-top: 25px;">Count</button>
+	{{template "form" .FormData}}
+	<hr style="width: 50%; height: 10px; background-color: lime; border: none;">
+	{{template "display" .Data}}
 </body>
 
 </html>
 {{end}}
 
-{{block "count" .}}
-{{.Count}}
+{{block "form" .}}
+<form hx-swap="outerHTML" hx-post="/contacts">
+	name <input {{if .Values.name}} value="{{.Values.name}}" {{end}} type="text" name="name" />
+	email <input {{if .Values.email}} value="{{.Values.email}}" {{end}} type="email" name="email" />
+
+	{{if .Errors.email}}
+	<div style="color: red;">{{.Errors.email}}</div>
+	{{end}}
+	<button type="submit">Create Contact</button>
+</form>
+{{end}}
+
+{{block "display" .}}
+<div id="contacts" style="display: flex; flex-direction: column;">
+	{{range .Contacts}}
+	{{template "contact" .}}
+	{{end}}
+</div>
+{{end}}
+
+{{block "contact" .}}
+<div>
+	Name: <span style="color: red;">{{.Name}}</span> |||
+	Email: <span style="color: red;">{{.Email}}</span>
+</div>
+{{end}}
+
+{{block "oob-contact" .}}
+<div id="contacts" hx-swap-oob="afterbegin">
+	{{template "contact" .}}
+</div>
 {{end}}
