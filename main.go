@@ -2,17 +2,23 @@ package main
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
+var id = 0
+
 type Contact struct {
 	Name  string
 	Email string
+	Id    int
 }
 
 func newContact(name, email string) Contact {
-	return Contact{Name: name, Email: email}
+	id++
+	return Contact{Name: name, Email: email, Id: id}
 }
 
 type Contacts []Contact
@@ -28,6 +34,16 @@ func (d *Data) hasEmail(email string) bool {
 		}
 	}
 	return false
+}
+
+func (d *Data) indexOf(id int) int {
+	for i, contact := range d.Contacts {
+		if contact.Id == id {
+			return i
+		}
+	}
+
+	return -1
 }
 
 func newData() Data {
@@ -67,6 +83,9 @@ func main() {
 	router := gin.Default()             // создаем роутер Gin
 	router.LoadHTMLGlob("views/*.html") // указываем, где искать HTML файлы
 
+	router.Static("/css", "css")
+	router.Static("/images", "images")
+
 	page := newPage()
 
 	router.GET("/", func(ctx *gin.Context) {
@@ -94,5 +113,23 @@ func main() {
 		ctx.HTML(http.StatusOK, "oob-contact", contact)
 	})
 
-	_ = router.Run(":8080") // запускаем сервер на порту 8080
+	router.DELETE("/contacts/:id", func(ctx *gin.Context) {
+		time.Sleep(time.Second * 3)
+
+		idStr := ctx.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			ctx.String(400, "Invalid ID")
+		}
+
+		index := page.Data.indexOf(id)
+		if index == -1 {
+			ctx.String(400, "Contact not found")
+		}
+
+		page.Data.Contacts = append(page.Data.Contacts[:index], page.Data.Contacts[index+1:]...)
+		ctx.Status(204)
+	})
+
+	_ = router.Run(":3000") // запускаем сервер на порту 3000
 }
